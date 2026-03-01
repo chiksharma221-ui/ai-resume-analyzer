@@ -1,7 +1,11 @@
 const express = require("express");
 const multer = require("multer");
-const pdfParse = require("pdf-parse").default || require("pdf-parse");
 const fs = require("fs");
+
+async function parsePDF(buffer) {
+    const pdfParse = (await import("pdf-parse")).default;
+    return pdfParse(buffer);
+}
 const analyzeResume = require("../services/openaiService");
 
 const router = express.Router();
@@ -17,7 +21,7 @@ router.post("/analyze", upload.single("resume"), async function (req, res) {
 
         const filePath = req.file.path;
         const dataBuffer = fs.readFileSync(filePath);
-        const pdfData = await pdfParse(dataBuffer);
+        const pdfData = await parsePDF(dataBuffer);
         const resumeText = pdfData.text;
 
         const aiResponse = await analyzeResume(resumeText);
